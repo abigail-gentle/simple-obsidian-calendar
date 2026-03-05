@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "obsidian": ["src/__mocks__/obsidian.ts"],
+      "obsidian-daily-notes-interface": ["src/__mocks__/obsidian-daily-notes-interface.ts"],
+      "src/*": ["src/*"]
+    }
+  }
+}
