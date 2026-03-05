@@ -141,6 +141,9 @@ export class FileView extends ItemView {
 // Utility functions used by the plugin
 export const normalizePath = (p: string): string => p.replace(/\\/g, "/").replace(/\/+/g, "/");
 
+// Used by tags source to extract tags from frontmatter
+export const parseFrontMatterTags = jest.fn().mockReturnValue(null);
+
 // Notice (used in some error reporting)
 export class Notice {
   constructor(_message: string, _timeout?: number) {}

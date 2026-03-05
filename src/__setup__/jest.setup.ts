@@ -73,8 +73,26 @@ const makeMetadataCacheMock = () => ({
 // inside their own beforeEach/it blocks.
 // ---------------------------------------------------------------------------
 beforeEach(() => {
-  (global as any).window.app.vault = makeVaultMock();
-  (global as any).window.app.workspace = makeWorkspaceMock();
-  (global as any).window.app.metadataCache = makeMetadataCacheMock();
-  (global as any).window.app.plugins.plugins = {};
+  (global as any).window.app = {
+    vault: makeVaultMock(),
+    workspace: makeWorkspaceMock(),
+    metadataCache: makeMetadataCacheMock(),
+    plugins: {
+      plugins: {} as Record<string, unknown>,
+    },
+    internalPlugins: {
+      plugins: {
+        "daily-notes": {
+          enabled: true,
+          instance: {
+            options: {
+              format: "YYYY-MM-DD",
+              folder: "",
+              template: "",
+            },
+          },
+        },
+      },
+    },
+  };
 });

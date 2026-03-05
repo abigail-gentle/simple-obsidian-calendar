@@ -1,15 +1,19 @@
 /**
  * Tests for src/ui/context.ts
- *
- * context.ts exports two Svelte context keys as Symbols. These tests verify
- * identity and type contracts only — the actual context wiring is tested via
- * Svelte component smoke tests.
  */
 
+import { DISPLAYED_MONTH, IS_MOBILE } from "src/ui/context";
+
 describe("context symbols", () => {
-  it.todo("IS_MOBILE is a Symbol");
+  it("IS_MOBILE is a Symbol", () => {
+    expect(typeof IS_MOBILE).toBe("symbol");
+  });
 
-  it.todo("DISPLAYED_MONTH is a Symbol");
+  it("DISPLAYED_MONTH is a Symbol", () => {
+    expect(typeof DISPLAYED_MONTH).toBe("symbol");
+  });
 
-  it.todo("IS_MOBILE and DISPLAYED_MONTH are distinct symbols");
+  it("IS_MOBILE and DISPLAYED_MONTH are distinct symbols", () => {
+    expect(IS_MOBILE).not.toBe(DISPLAYED_MONTH);
+  });
 });

@@ -1,63 +1,145 @@
 /**
  * Tests for src/io/template.ts
- *
- * Covers:
- *   - templaterIsAvailable()  — reads window.app.plugins.plugins
- *   - applyTemplate()         — dispatches to Obsidian built-in or Templater
- *
- * The Templater plugin ID is "templater-obsidian" (not "templater").
- * window.app is reset in jest.setup.ts; each test that needs Templater
- * present adds it manually to window.app.plugins.plugins.
  */
 
+import { TFile } from "obsidian";
+import { applyTemplate, templaterIsAvailable } from "src/io/template";
+
 describe("templaterIsAvailable", () => {
-  it.todo(
-    "returns true when app.plugins.plugins['templater-obsidian'] is an object"
-  );
+  it("returns true when app.plugins.plugins['templater-obsidian'] is an object", () => {
+    window.app.plugins.plugins["templater-obsidian"] = { id: "templater-obsidian" };
+    expect(templaterIsAvailable()).toBe(true);
+  });
 
-  it.todo(
-    "returns false when 'templater-obsidian' is absent from the plugin registry"
-  );
+  it("returns false when 'templater-obsidian' is absent from the plugin registry", () => {
+    // default mock has empty plugins object
+    expect(templaterIsAvailable()).toBe(false);
+  });
 
-  it.todo("returns false when app.plugins.plugins is an empty object");
+  it("returns false when app.plugins.plugins is an empty object", () => {
+    window.app.plugins.plugins = {};
+    expect(templaterIsAvailable()).toBe(false);
+  });
 
-  it.todo("returns false when app.plugins is undefined");
+  it("returns false when app.plugins is undefined", () => {
+    (window.app as any).plugins = undefined;
+    expect(templaterIsAvailable()).toBe(false);
+  });
 
-  it.todo("returns false when app is missing the plugins property entirely");
+  it("returns false when app is missing the plugins property entirely", () => {
+    const origApp = window.app;
+    (window as any).app = {};
+    expect(templaterIsAvailable()).toBe(false);
+    (window as any).app = origApp;
+  });
 });
 
 describe("applyTemplate", () => {
-  describe("when engine is 'obsidian'", () => {
-    it.todo("returns without calling any Templater method");
+  const targetFile = new TFile("2024-01-15.md");
 
-    it.todo("does not throw even if Templater is not installed");
+  describe("when engine is 'obsidian'", () => {
+    it("returns without calling any Templater method", async () => {
+      const writeTemplateMock = jest.fn();
+      window.app.plugins.plugins["templater-obsidian"] = {
+        templater: { write_template_to_file: writeTemplateMock },
+      };
+
+      await applyTemplate("obsidian", "templates/daily.md", targetFile);
+
+      expect(writeTemplateMock).not.toHaveBeenCalled();
+    });
+
+    it("does not throw even if Templater is not installed", async () => {
+      await expect(
+        applyTemplate("obsidian", "templates/daily.md", targetFile)
+      ).resolves.not.toThrow();
+    });
   });
 
   describe("when engine is 'templater' and Templater is available", () => {
-    it.todo(
-      "calls write_template_to_file with the template TFile and the target TFile"
-    );
+    let writeTemplateMock: jest.Mock;
+    let templateFile: TFile;
 
-    it.todo("resolves the template path via app.vault.getAbstractFileByPath");
+    beforeEach(() => {
+      templateFile = new TFile("templates/daily.md");
+      writeTemplateMock = jest.fn().mockResolvedValue(undefined);
+      window.app.plugins.plugins["templater-obsidian"] = {
+        templater: { write_template_to_file: writeTemplateMock },
+      };
+      (window.app.vault.getAbstractFileByPath as jest.Mock).mockReturnValue(
+        templateFile
+      );
+    });
+
+    it("calls write_template_to_file with the template TFile and the target TFile", async () => {
+      await applyTemplate("templater", "templates/daily.md", targetFile);
+
+      expect(writeTemplateMock).toHaveBeenCalledWith(templateFile, targetFile);
+    });
+
+    it("resolves the template path via app.vault.getAbstractFileByPath", async () => {
+      await applyTemplate("templater", "templates/daily.md", targetFile);
+
+      expect(window.app.vault.getAbstractFileByPath).toHaveBeenCalledWith(
+        "templates/daily.md"
+      );
+    });
 
     describe("when the template file does not exist in the vault", () => {
-      it.todo("does not call write_template_to_file");
+      beforeEach(() => {
+        (window.app.vault.getAbstractFileByPath as jest.Mock).mockReturnValue(null);
+      });
 
-      it.todo("logs a warning to the console");
+      it("does not call write_template_to_file", async () => {
+        await applyTemplate("templater", "templates/daily.md", targetFile);
+        expect(writeTemplateMock).not.toHaveBeenCalled();
+      });
 
-      it.todo("does not throw");
+      it("logs a warning to the console", async () => {
+        const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+        await applyTemplate("templater", "templates/daily.md", targetFile);
+        expect(warnSpy).toHaveBeenCalled();
+        warnSpy.mockRestore();
+      });
+
+      it("does not throw", async () => {
+        await expect(
+          applyTemplate("templater", "templates/daily.md", targetFile)
+        ).resolves.not.toThrow();
+      });
     });
 
     describe("when templatePath is an empty string", () => {
-      it.todo("does not call write_template_to_file");
+      it("does not call write_template_to_file", async () => {
+        await applyTemplate("templater", "", targetFile);
+        expect(writeTemplateMock).not.toHaveBeenCalled();
+      });
 
-      it.todo("does not throw");
+      it("does not throw", async () => {
+        await expect(
+          applyTemplate("templater", "", targetFile)
+        ).resolves.not.toThrow();
+      });
     });
   });
 
   describe("when engine is 'templater' but Templater is NOT available", () => {
-    it.todo("does not call write_template_to_file");
+    let writeTemplateMock: jest.Mock;
 
-    it.todo("does not throw");
+    beforeEach(() => {
+      writeTemplateMock = jest.fn();
+      // No templater-obsidian in plugins (default mock)
+    });
+
+    it("does not call write_template_to_file", async () => {
+      await applyTemplate("templater", "templates/daily.md", targetFile);
+      expect(writeTemplateMock).not.toHaveBeenCalled();
+    });
+
+    it("does not throw", async () => {
+      await expect(
+        applyTemplate("templater", "templates/daily.md", targetFile)
+      ).resolves.not.toThrow();
+    });
   });
 });
