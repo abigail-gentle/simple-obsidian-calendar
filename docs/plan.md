@@ -22,23 +22,21 @@ CSS-only tooltip.
 
 ---
 
-## Stage 0 — Unit Test Development (Write First, Then Review)
+## Stage 0 — Unit Test Development (Write First, Then Review) ✅ DONE
 
-Unit tests are written **before** implementation. See [`testing.md`](./testing.md) for the
-full philosophy and test-case specifications. The implementation stages below do not begin
-until Stage 0 tests have been reviewed and approved.
+Unit tests were written before implementation. See [`testing.md`](./testing.md) for the
+full philosophy and test-case specifications.
 
-**Deliverables:**
-- `jest.config.js` and test infrastructure configured
+**Deliverables (all done):**
+- `jest.config.js` and test infrastructure configured — committed `4c11533`
 - `src/__mocks__/obsidian.ts` — mock of the Obsidian API module
 - `src/__mocks__/obsidian-daily-notes-interface.ts` — mock of the interface library
-- All test files in `src/**/__tests__/` with full `describe`/`it` blocks
-- Every test **must fail** (because the implementation does not exist yet). A CI step
-  verifies this before the implementation stages begin.
+- All test files in `src/**/__tests__/` with full `describe`/`it.todo` stubs — committed `aca6978`
+  (246 todos across 16 test files)
 
 ---
 
-## Stage 1 — Repository & Tooling Setup
+## Stage 1 — Repository & Tooling Setup ✅ DONE
 
 ### 1.1 Directory layout
 
@@ -194,31 +192,34 @@ Based on `obsidian-periodic-notes` (most strict), with path alias from the plugi
 
 ---
 
-## Stage 2 — Merge calendar-ui Source
+## Stage 2 — Merge calendar-ui Source ✅ DONE (non-Svelte files)
 
 Copy all files from `obsidian-calendar-ui/src/` into the appropriate places in `src/`,
 then fix all imports. No logic changes in this stage — only structural merging.
 
+**Status:** All non-Svelte files are done. Svelte component files are deferred to Stage 10
+(written after the non-Svelte core is tested). See file mapping below for individual status.
+
 ### 2.1 File mapping
 
-| `calendar-ui` source | Destination | Notes |
+| `calendar-ui` source | Destination | Status |
 |---|---|---|
-| `src/components/Calendar.svelte` | `src/ui/Calendar.svelte` | Replaces plugin's thin wrapper |
-| `src/components/Day.svelte` | `src/ui/Day.svelte` | Fix import paths only |
-| `src/components/WeekNum.svelte` | `src/ui/WeekNum.svelte` | Fix import paths only |
-| `src/components/Nav.svelte` | `src/ui/Nav.svelte` | Remove `appHasMonthlyNotesPluginLoaded` (see §2.2) |
-| `src/components/Arrow.svelte` | `src/ui/Arrow.svelte` | Copy |
-| `src/components/Dot.svelte` | `src/ui/Dot.svelte` | Copy |
-| `src/components/Dots.svelte` | `src/ui/Dots.svelte` | Copy |
-| `src/components/MetadataResolver.svelte` | `src/ui/MetadataResolver.svelte` | Copy |
-| `src/components/popover/*.svelte` | **deleted** | Replaced by `Tooltip.svelte` in Stage 6 |
-| `src/fileStore.ts` | `src/ui/fileStore.ts` | Fix import paths |
-| `src/localization.ts` | `src/localization.ts` | Copy |
-| `src/types.ts` | `src/types.ts` | Merge with plugin's existing types |
-| `src/utils.ts` | `src/ui/utils.ts` | Merge with plugin's existing utils |
-| `src/context.js` | `src/ui/context.ts` | Convert to TypeScript |
-| `index.d.ts` | **deleted** | No longer a library; types are internal |
-| `popper.d.ts` | **deleted** | Popper removed |
+| `src/components/Calendar.svelte` | `src/ui/Calendar.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/Day.svelte` | `src/ui/Day.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/WeekNum.svelte` | `src/ui/WeekNum.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/Nav.svelte` | `src/ui/Nav.svelte` | ⏳ Pending (Stage 10) — remove `appHasMonthlyNotesPluginLoaded` |
+| `src/components/Arrow.svelte` | `src/ui/Arrow.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/Dot.svelte` | `src/ui/Dot.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/Dots.svelte` | `src/ui/Dots.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/MetadataResolver.svelte` | `src/ui/MetadataResolver.svelte` | ⏳ Pending (Stage 10) |
+| `src/components/popover/*.svelte` | **deleted** | ✅ Removed — replaced by `Tooltip.svelte` (Stage 6) |
+| `src/fileStore.ts` | `src/ui/fileStore.ts` | ✅ Done — committed `cd57d7c` |
+| `src/localization.ts` | `src/localization.ts` | ✅ Done — uses vault.getConfig instead of localStorage |
+| `src/types.ts` | `src/types.ts` | ✅ Done — merged with plugin types |
+| `src/utils.ts` | `src/ui/utils.ts` | ✅ Done — 53 tests passing |
+| `src/context.js` | `src/ui/context.ts` | ✅ Done — converted to TypeScript |
+| `index.d.ts` | **deleted** | ✅ Done — no longer a library |
+| `popper.d.ts` | **deleted** | ✅ Done — Popper removed |
 
 ### 2.2 Nav.svelte: remove monthly notes detection
 
@@ -260,27 +261,29 @@ this.calendar = new Calendar({
 
 ---
 
-## Stage 3 — Fix Deprecated Obsidian API Calls
+## Stage 3 — Fix Deprecated Obsidian API Calls ✅ DONE
 
 All of these are mechanical, one-line changes. Affected files: `src/main.ts`,
 `src/view.ts`, `src/ui/fileMenu.ts`, `src/io/dailyNotes.ts`, `src/io/weeklyNotes.ts`.
 
-| Deprecated call | Replacement | File(s) |
-|---|---|---|
-| `workspace.getUnpinnedLeaf()` | `this.app.workspace.getLeaf(false)` | `view.ts`, `io/dailyNotes.ts`, `io/weeklyNotes.ts` |
-| `workspace.splitActiveLeaf()` | `this.app.workspace.getLeaf('split')` | Same |
-| `workspace.on('layout-ready', cb)` | `workspace.onLayoutReady(cb)` | `main.ts` |
-| `new Menu(app)` | `new Menu()` | `ui/fileMenu.ts` |
-| `workspace.setActiveLeaf(leaf, true, true)` | `workspace.setActiveLeaf(leaf, { focus: true })` | `view.ts` |
-| Bare `workspace.` references *(bug)* | `this.app.workspace.` | `view.ts` `openOrCreateDailyNote`, `openOrCreateWeeklyNote` |
+| Deprecated call | Replacement | File(s) | Status |
+|---|---|---|---|
+| `workspace.getUnpinnedLeaf()` | `workspace.getLeaf(false)` | `io/dailyNotes.ts`, `io/weeklyNotes.ts` | ✅ Done |
+| `workspace.splitActiveLeaf()` | `workspace.getLeaf('split')` | Same | ✅ Done |
+| `workspace.on('layout-ready', cb)` | `workspace.onLayoutReady(cb)` | `main.ts` | ⏳ Pending (`main.ts` not written) |
+| `new Menu(app)` | `new Menu()` | `ui/fileMenu.ts` | ⏳ Pending (`fileMenu.ts` not written) |
+| `workspace.setActiveLeaf(leaf, true, true)` | `workspace.setActiveLeaf(leaf, { focus: true })` | `view.ts` | ⏳ Pending (`view.ts` not written) |
+| Bare `workspace.` references *(bug)* | `this.app.workspace.` | `view.ts` | ⏳ Pending |
 
 ---
 
-## Stage 4 — Resolve the ICalendarSource Version Mismatch
+## Stage 4 — Resolve the ICalendarSource Version Mismatch ✅ DONE
 
-The plugin's four sources use the **old v0.3.x API** (`getDailyMetadata` /
+**Status: Done** — all four sources implemented with the unified API in `cd57d7c`.
+
+The plugin's four sources used the **old v0.3.x API** (`getDailyMetadata` /
 `getWeeklyMetadata`). The merged `calendar-ui` code at v0.4.0 expects the **unified API**
-(`getMetadata(granularity, date, file)`). All four sources must be updated. Internal logic
+(`getMetadata(granularity, date, file)`). All four sources have been updated. Internal logic
 (word counting, streak detection, tag reading, task counting) is unchanged.
 
 ### 4.1 New unified interface (already in `src/types.ts`)
@@ -361,9 +364,10 @@ export const tasksSource: ICalendarSource = {
 
 ---
 
-## Stage 5 — Svelte 4 Migration
+## Stage 5 — Svelte 4 Migration ⏳ PENDING
 
-Svelte 4 is largely backwards-compatible with Svelte 3. Items to address:
+Svelte 4 is largely backwards-compatible with Svelte 3. No `.svelte` files exist yet —
+this stage is done in conjunction with Stage 10 (writing the components). Items to address:
 
 | Change | Affected files | Action |
 |---|---|---|
@@ -375,7 +379,7 @@ Svelte 4 is largely backwards-compatible with Svelte 3. Items to address:
 
 ---
 
-## Stage 6 — CSS-only Tooltip (Replace Popper.js)
+## Stage 6 — CSS-only Tooltip (Replace Popper.js) ⏳ PENDING
 
 ### 6.1 Remove dependencies
 
@@ -455,7 +459,11 @@ Replace all Popper / portal / popover state and imports with:
 
 ---
 
-## Stage 7 — Templater Integration
+## Stage 7 — Templater Integration ✅ DONE (core logic; settings UI pending)
+
+**Status:** `src/io/template.ts` is done (16 tests passing). `dailyNotes.ts` and
+`weeklyNotes.ts` are wired. `ISettings.templateEngine` field exists. Settings UI (§7.4) is
+pending — depends on `CalendarSettingsTab` in `main.ts`/`view.ts`.
 
 ### 7.1 New `src/io/template.ts`
 
@@ -580,44 +588,87 @@ if (templaterIsAvailable(this.app)) {
 
 ---
 
-## Stage 8 — Settings Cleanup
+## Stage 8 — Settings Cleanup ✅ DONE (non-UI portions)
 
 ### 8.1 Remove
 
-- `appHasPeriodicNotesPluginLoaded()` function from `settings.ts`
-- Settings-tab branch that hides weekly note fields when Periodic Notes is loaded
-- `periodic-notes:settings-updated` workspace event listener in `view.ts`
+- `appHasPeriodicNotesPluginLoaded()` function from `settings.ts` — ✅ not present
+- Settings-tab branch that hides weekly note fields when Periodic Notes is loaded — ⏳ pending (`CalendarSettingsTab` not written yet)
+- `periodic-notes:settings-updated` workspace event listener in `view.ts` — ⏳ pending (`view.ts` not written)
 
 ### 8.2 Keep
 
-- All weekly note settings (format, template, folder)
-- `shouldConfirmBeforeCreate` confirmation dialog
-- `calendar:open` workspace event (third-party extensibility)
+- All weekly note settings (format, template, folder) — ✅ in `ISettings`
+- `shouldConfirmBeforeCreate` confirmation dialog — ✅ in `ISettings`
+- `calendar:open` workspace event (third-party extensibility) — ⏳ pending (`main.ts`)
 
 ### 8.3 Add
 
-- `templateEngine: "obsidian" | "templater"` — default `"obsidian"`
+- `templateEngine: "obsidian" | "templater"` — ✅ done, default `"obsidian"`
 
 ---
 
-## Stage 9 — Known Bug Fixes
+## Stage 9 — Known Bug Fixes ✅ DONE (in implemented files)
 
-| Bug | Location | Fix |
-|---|---|---|
-| Bare `workspace.` references (not `this.app.workspace.`) | `view.ts` `openOrCreateDailyNote`, `openOrCreateWeeklyNote` | Prefix with `this.app.` |
-| `activeFile.setFile(null)` crashes (`getDateUIDFromFile(null)`) | `ui/stores.ts` | Guard: `const id = file ? getDateUIDFromFile(file) : null` |
-| Sources call `getMetadata` with `null` file and crash | All four source files | Each `getMetadata` returns early with `{ dots: [] }` when `file === null` |
-| `PeriodicNotesCache.getEvaluatedMetadata` uncaught source rejection | `ui/fileStore.ts` | Wrap each `source.getMetadata?.()` call in try/catch; log and continue |
+| Bug | Location | Fix | Status |
+|---|---|---|---|
+| Bare `workspace.` references (not `this.app.workspace.`) | `view.ts` | Prefix with `this.app.` | ⏳ Pending (`view.ts` not written) |
+| `activeFile.setFile(null)` crashes (`getDateUIDFromFile(null)`) | `ui/stores.ts` | Guard: `if (file === null) { store.set(null); return; }` | ✅ Fixed |
+| Sources call `getMetadata` with `null` file and crash | All four source files | Each source returns `{ dots: [] }` when `file` is null | ✅ Fixed |
+| `PeriodicNotesCache.getEvaluatedMetadata` uncaught source rejection | `ui/fileStore.ts` | Each `source.getMetadata?.()` call wrapped in try/catch | ✅ Fixed |
 
 ---
 
-## Stage 10 — Cleanup & Final Pass
+## Stage 10 — Write Svelte Components + main.ts/view.ts ⏳ PENDING
 
-- Convert `context.js` → `context.ts` (any remaining `.js` files)
-- Delete `src/testUtils/` mock app (replaced by proper Jest mocks in `src/__mocks__/`)
-- ESLint: move to `eslint.config.js` (flat config, ESLint 9)
-- Run `svelte-check` and `tsc --noEmit` to zero out all type errors
-- Run `jest` — all tests should now **pass**
+This is the largest remaining block of work. All non-Svelte logic is done; the plugin
+cannot be loaded in Obsidian until these files exist.
+
+### 10.1 Files to write
+
+- `src/main.ts` — Plugin class, `onload`/`onunload`, settings load/save, command registration,
+  ribbon icon, `CalendarSettingsTab`, `calendar:open` event
+- `src/view.ts` — `CalendarView extends ItemView`, `onOpen`/`onClose`, mounts `Calendar.svelte`
+- `src/ui/fileMenu.ts` — right-click context menu (`new Menu()`, not `new Menu(app)`)
+- `src/ui/sources/index.ts` — exports the four source objects as a list
+- `src/ui/Calendar.svelte` — ported from `calendar-ui`, Popper removed, Tooltip wired
+- `src/ui/Day.svelte`
+- `src/ui/WeekNum.svelte`
+- `src/ui/Nav.svelte` — remove `appHasMonthlyNotesPluginLoaded()` branch
+- `src/ui/Arrow.svelte`
+- `src/ui/Dot.svelte`
+- `src/ui/Dots.svelte`
+- `src/ui/MetadataResolver.svelte`
+- `src/ui/Tooltip.svelte` — new CSS-only tooltip (see Stage 6 spec)
+- `styles.css`
+- `esbuild.config.mjs`
+
+### 10.2 Svelte 4 migration checklist (apply while writing components)
+
+See Stage 5 table for the full list. Key items:
+- `transition:fade|global` modifier on conditionally-mounted elements
+- CSS `:global()` scoping — run `svelte-check` and address all warnings
+- `svelte-preprocess` version 5 config in `esbuild.config.mjs`
+
+## Stage 11 — Fill in `it.todo` Test Bodies ⏳ PENDING
+
+149 test stubs remain. Priority order:
+
+1. `src/ui/__tests__/stores.test.ts` — 25 todos (stores are fully implemented)
+2. `src/ui/__tests__/fileStore.test.ts` — 19 todos
+3. `src/io/__tests__/dailyNotes.test.ts` — 20 todos
+4. `src/io/__tests__/weeklyNotes.test.ts` — 14 todos
+5. `src/ui/sources/__tests__/*.test.ts` — 58 todos across four files
+6. `src/ui/__tests__/Tooltip.test.ts` — 8 todos (blocked until `Tooltip.svelte` exists)
+7. `src/ui/__tests__/Nav.test.ts` — smoke (blocked until `Nav.svelte` exists)
+8. `src/ui/__tests__/Day.test.ts` — smoke (blocked until `Day.svelte` exists)
+
+## Stage 12 — Final Cleanup, Lint, Build, Smoke Test ⏳ PENDING
+
+- Convert any remaining `.js` files to `.ts`
+- ESLint: `eslint.config.js` (flat config, ESLint 9)
+- Run `svelte-check` and `tsc --noEmit` — zero type errors
+- Run `jest` — 0 failures, 0 todos remaining
 - Manual build: `node esbuild.config.mjs production` → verify `main.js` is produced
 - Smoke test in Obsidian:
   - Enable plugin → calendar sidebar appears
@@ -632,19 +683,21 @@ if (templaterIsAvailable(this.app)) {
 
 ## Implementation Order Summary
 
-| Step | Stage | Description |
-|---|---|---|
-| 0 | **Stage 0** | Write all unit tests (fail-first); review and approve |
-| 1 | Stage 1 | Create repo skeleton: `package.json`, `esbuild.config.mjs`, `tsconfig.json`, `manifest.json` |
-| 2 | Stage 2 | Copy calendar-ui source files into `src/ui/`; delete Popper files; fix all import paths |
-| 3 | Stage 3 | Fix all deprecated Obsidian API calls |
-| 4 | Stage 4 | Migrate all four sources to v0.4.0 `ICalendarSource` API |
-| 5 | Stage 5 | Apply Svelte 4 migration fixes; run `svelte-check` |
-| 6 | Stage 6 | Write `Tooltip.svelte`; wire into `Calendar.svelte`; remove Popper wiring |
-| 7 | Stage 7 | Write `io/template.ts`; update `io/dailyNotes.ts` + `io/weeklyNotes.ts`; add settings UI |
-| 8 | Stage 8 | Settings cleanup |
-| 9 | Stage 9 | Fix known bugs |
-| 10 | Stage 10 | ESLint update, full lint + typecheck + build; smoke test in Obsidian |
+| Step | Stage | Description | Status |
+|---|---|---|---|
+| 0 | Stage 0 | Write all unit test stubs (fail-first) | ✅ Done |
+| 1 | Stage 1 | Create repo skeleton: `package.json`, `tsconfig.json`, `jest.config.js`, `manifest.json` | ✅ Done |
+| 2 | Stage 2 | Merge calendar-ui non-Svelte files into `src/`; fix imports | ✅ Done |
+| 3 | Stage 3 | Fix deprecated Obsidian API calls in `io/dailyNotes.ts`, `io/weeklyNotes.ts` | ✅ Done (partial — `view.ts`/`main.ts` pending) |
+| 4 | Stage 4 | Migrate all four sources to unified `getMetadata` API | ✅ Done |
+| 5 | Stage 5 | Svelte 4 migration | ⏳ Pending (no `.svelte` files yet) |
+| 6 | Stage 6 | Write `Tooltip.svelte`; wire into `Calendar.svelte`; remove Popper | ⏳ Pending |
+| 7 | Stage 7 | `io/template.ts`; update `dailyNotes.ts` + `weeklyNotes.ts`; settings field | ✅ Done (settings UI pending) |
+| 8 | Stage 8 | Settings cleanup (`ISettings`, remove Periodic Notes references) | ✅ Done (settings tab UI pending) |
+| 9 | Stage 9 | Fix known bugs (setFile null, source null guard, fileStore try/catch) | ✅ Done |
+| 10 | Stage 10 | Write all Svelte components + `main.ts` + `view.ts` + `fileMenu.ts` | ⏳ Pending |
+| 11 | Stage 11 | Fill in 149 `it.todo` test bodies | ⏳ Pending |
+| 12 | Stage 12 | ESLint, `svelte-check`, `tsc --noEmit`, build, smoke test in Obsidian | ⏳ Pending |
 
 ---
 

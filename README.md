@@ -7,7 +7,7 @@ A community fork of [liamcain/obsidian-calendar-plugin](https://github.com/liamc
 ## Status
 
 **Version:** 2.0.0-dev  
-**Stage:** Testing framework built. Implementation not yet started.
+**Stage:** Core source files implemented. Svelte components and `main.ts`/`view.ts` not yet written.
 
 The original plugin was spread across three repositories:
 
@@ -42,25 +42,47 @@ Adds a calendar panel to Obsidian's sidebar. Each day cell and week-number cell 
 ```
 simple-obsidian-calendar/
 ├── docs/
-│   ├── plan.md          ← full 10-stage implementation plan
+│   ├── plan.md          ← full implementation plan (stages and status)
 │   └── testing.md       ← unit test philosophy and per-module test specifications
 ├── src/
+│   ├── global.d.ts      ← Window interface augmentation (app, moment, _bundledLocaleWeekSpec)
+│   ├── types.ts         ← shared types (IDot, ICalendarSource, IEvaluatedMetadata, etc.)
+│   ├── constants.ts     ← DEFAULT_WEEK_FORMAT, DEFAULT_WORDS_PER_DOT, etc.
+│   ├── localization.ts  ← configureGlobalMomentLocale (reads from vault.getConfig)
+│   ├── settings.ts      ← ISettings interface + defaultSettings (incl. templateEngine)
 │   ├── __mocks__/       ← manual Jest mocks for obsidian and obsidian-daily-notes-interface
 │   ├── __setup__/       ← jest.setup.ts (global mocks, window.app, window.moment)
-│   ├── __tests__/       ← framework smoke test (17 passing); home for future top-level tests
+│   ├── __tests__/       ← framework smoke test + localization/settings tests (43 passing)
 │   ├── io/
-│   │   └── __tests__/   ← placeholder for dailyNotes, weeklyNotes, template tests
+│   │   ├── template.ts      ← templaterIsAvailable + applyTemplate
+│   │   ├── dailyNotes.ts    ← tryToCreateDailyNote (modern workspace API)
+│   │   ├── weeklyNotes.ts   ← tryToCreateWeeklyNote (modern workspace API)
+│   │   └── __tests__/       ← template tests (16 passing); dailyNotes/weeklyNotes (todos)
 │   └── ui/
-│       ├── __tests__/   ← placeholder for store, fileStore, component tests
+│       ├── context.ts       ← IS_MOBILE, DISPLAYED_MONTH symbols
+│       ├── fileStore.ts     ← PeriodicNotesCache (ported from calendar-ui)
+│       ├── modal.ts         ← ConfirmationModal + createConfirmationDialog
+│       ├── stores.ts        ← dailyNotes, weeklyNotes, activeFile, settings stores
+│       ├── utils.ts         ← full merged utils (53 tests passing)
+│       ├── __tests__/       ← utils/context tests passing; stores/fileStore/component todos
 │       └── sources/
-│           └── __tests__/ ← placeholder for source implementation tests
+│           ├── wordCount.ts ← unified getMetadata API
+│           ├── tasks.ts     ← unified getMetadata API
+│           ├── tags.ts      ← unified getMetadata API
+│           ├── streak.ts    ← unified getMetadata API
+│           └── __tests__/   ← all sources have todo stubs
 ├── jest.config.js
 ├── tsconfig.json        ← main build config
 ├── tsconfig.test.json   ← test-only overrides (commonjs, mock path aliases)
 └── package.json
 ```
 
-Plugin source (`src/main.ts`, `src/view.ts`, etc.) does not exist yet — it will be written in Stages 1–10 after the unit tests are reviewed and approved (see `docs/plan.md`).
+**Not yet written** (required to build and run the plugin):
+`src/main.ts`, `src/view.ts`, `src/ui/Calendar.svelte`, `src/ui/Day.svelte`,
+`src/ui/WeekNum.svelte`, `src/ui/Nav.svelte`, `src/ui/Arrow.svelte`,
+`src/ui/Dot.svelte`, `src/ui/Dots.svelte`, `src/ui/MetadataResolver.svelte`,
+`src/ui/Tooltip.svelte`, `src/ui/fileMenu.ts`, `src/ui/sources/index.ts`,
+`styles.css`, `esbuild.config.mjs`.
 
 ---
 
@@ -112,17 +134,19 @@ The stages are:
 
 | Stage | Description | Status |
 |---|---|---|
-| 0 | Write unit tests (fail-first) | **Next** |
-| 1 | Repository & tooling setup | Pending |
-| 2 | Merge `obsidian-calendar-ui` source | Pending |
-| 3 | Fix deprecated Obsidian API calls | Pending |
-| 4 | Resolve `ICalendarSource` version mismatch | Pending |
-| 5 | Svelte 4 migration | Pending |
-| 6 | CSS-only tooltip (remove Popper.js) | Pending |
-| 7 | Templater integration | Pending |
-| 8 | Settings cleanup | Pending |
-| 9 | Known bug fixes | Pending |
-| 10 | Final cleanup, lint, typecheck, smoke test | Pending |
+| 0 | Write unit test stubs (fail-first) | **Done** — 263 tests across 17 suites |
+| 1 | Repository & tooling setup | **Done** — package.json, tsconfig, jest, manifest |
+| 2 | Merge `obsidian-calendar-ui` source (TS/non-Svelte files) | **Done** — types, utils, context, fileStore, localization |
+| 3 | Fix deprecated Obsidian API calls | **Done** — getLeaf(false/split) in dailyNotes/weeklyNotes |
+| 4 | Resolve `ICalendarSource` version mismatch | **Done** — all four sources use getMetadata API |
+| 5 | Svelte 4 migration | **Pending** — no Svelte components written yet |
+| 6 | CSS-only tooltip (`Tooltip.svelte`, remove Popper.js) | **Pending** |
+| 7 | Templater integration | **Done** — template.ts, settings field, dailyNotes/weeklyNotes wired |
+| 8 | Settings cleanup | **Done** — ISettings has templateEngine; Periodic Notes references removed |
+| 9 | Known bug fixes | **Done** — setFile(null) guard; source getMetadata null guard; fileStore try/catch |
+| 10 | Write Svelte components + main.ts/view.ts | **Pending** |
+| 11 | Fill in `it.todo` test bodies | **Pending** — 149 todos across 12 test files |
+| 12 | ESLint, lint, typecheck, build, smoke test | **Pending** |
 
 ---
 
@@ -136,7 +160,30 @@ Key principles:
 - Every test must **fail** on an empty codebase and **pass** after the corresponding implementation stage
 - Mocks live at the Obsidian API boundary — internal functions are never mocked
 - `obsidian` and `obsidian-daily-notes-interface` are always-on manual mocks via `moduleNameMapper`; no `jest.mock()` calls needed in test files
-- The global `window.app` mock is rebuilt from scratch before every test via `beforeEach` in `jest.setup.ts`
+- The global `window.app` mock is fully rebuilt before every test via `beforeEach` in `jest.setup.ts`
+
+### Current test status
+
+| Test file | Passing | Todo |
+|---|---|---|
+| `src/__tests__/framework.test.ts` | 17 | 0 |
+| `src/__tests__/localization.test.ts` | 14 | 0 |
+| `src/__tests__/settings.test.ts` | 12 | 0 |
+| `src/ui/__tests__/utils.test.ts` | 53 | 0 |
+| `src/ui/__tests__/context.test.ts` | 3 | 0 |
+| `src/io/__tests__/template.test.ts` | 16 | 0 |
+| `src/ui/__tests__/stores.test.ts` | 0 | 25 |
+| `src/ui/__tests__/fileStore.test.ts` | 0 | 19 |
+| `src/io/__tests__/dailyNotes.test.ts` | 0 | 20 |
+| `src/io/__tests__/weeklyNotes.test.ts` | 0 | 14 |
+| `src/ui/sources/__tests__/wordCount.test.ts` | 0 | 15 |
+| `src/ui/sources/__tests__/tasks.test.ts` | 0 | 14 |
+| `src/ui/sources/__tests__/tags.test.ts` | 0 | 18 |
+| `src/ui/sources/__tests__/streak.test.ts` | 0 | 11 |
+| `src/ui/__tests__/Tooltip.test.ts` | 0 | 8 |
+| `src/ui/__tests__/Nav.test.ts` | 0 | 0 (smoke) |
+| `src/ui/__tests__/Day.test.ts` | 0 | 0 (smoke) |
+| **Total** | **115** | **149** |
 
 ---
 
