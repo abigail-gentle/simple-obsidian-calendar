@@ -1,0 +1,10 @@
+{
+  "id": "calendar",
+  "name": "Calendar",
+  "description": "Calendar view of your daily and weekly notes (community fork of liamcain/obsidian-calendar-plugin)",
+  "version": "2.0.0",
+  "author": "liamcain",
+  "authorUrl": "https://github.com/liamcain/",
+  "minAppVersion": "1.0.0",
+  "isDesktopOnly": false
+}
