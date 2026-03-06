@@ -333,9 +333,10 @@ class CalendarSettingsTab extends PluginSettingTab {
         });
       });
 
-    // Inline warning element shown when the format has mismatched week tokens.
-    // Appended beneath the setting control row, hidden by default.
-    const warningEl = setting.settingEl.createDiv("weekly-format-warning");
+    // Warning element appended to the container (sibling of the setting row,
+    // not a child) so it renders as a full-width block beneath it, not inline
+    // inside the setting's flex row.
+    const warningEl = this.containerEl.createDiv("weekly-format-warning");
     warningEl.hide();
 
     const updateFormatWarning = (format: string) => {
