@@ -1,0 +1,15 @@
+/* Root-level plugin styles loaded by Obsidian separately from main.js.
+   All per-component CSS is scoped inside .svelte files.
+   Ported directly from obsidian-calendar-plugin/styles.css — no changes. */
+
+.settings-banner {
+  background-color: var(--background-secondary-alt);
+  border-radius: 4px;
+  margin-bottom: 2em;
+  padding: 1.5em;
+  text-align: left;
+}
+
+.settings-banner h4 {
+  margin: 0;
+}
