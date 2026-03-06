@@ -1,19 +1,29 @@
 // Build config for simple-obsidian-calendar.
 //
 // Ported from obsidian-periodic-notes/esbuild.config.mjs with these changes:
-//   - Entry points: src/main.ts + styles.css (styles.css sits at repo root, not src/)
+//   - Entry point: src/main.ts only (styles.css is at the repo root and Obsidian
+//     reads it directly; no esbuild processing needed for production)
 //   - target: "es2018" (up from es2016, matches our tsconfig)
 //   - outdir for dev: reads TEST_VAULT from .env (no REAL_VAULT switch — not needed)
 //   - Plugin id comes from manifest.json as in the original
+//   CHANGED: `assert { type: "json" }` → `with { type: "json" }` (Node ≥ 22 requires
+//            the newer "import attributes" syntax; "assert" was removed).
+//   CHANGED: esbuild 0.17+ removed `watch` from build() options. Dev mode now uses
+//            context().watch() so the watch flag no longer causes a fatal build error.
+//   CHANGED: CSS is not bundled through esbuild in production. styles.css lives at the
+//            repo root and Obsidian loads it from there directly. In dev mode a simple
+//            fs.copyFileSync copies it into the test vault alongside main.js.
 
 import { config } from "dotenv";
 import esbuild from "esbuild";
 import process from "process";
+import { copyFileSync, mkdirSync } from "fs";
 import builtins from "builtin-modules";
 import sveltePlugin from "esbuild-svelte";
 import sveltePreprocess from "svelte-preprocess";
 
-import manifest from "./manifest.json" assert { type: "json" };
+// CHANGED: "with" replaces "assert" — required by Node 22+.
+import manifest from "./manifest.json" with { type: "json" };
 
 // Load .env so TEST_VAULT is available in dev mode.
 config();
@@ -44,53 +54,66 @@ if (!prod) {
 
 console.info(`\n[esbuild] Writing plugin to: ${outdir}\n`);
 
-esbuild
-  .build({
-    banner: { js: banner },
-    // Source: plugin entry point + top-level stylesheet.
-    entryPoints: ["src/main.ts", "styles.css"],
-    bundle: true,
-    // Mark Obsidian and all Electron/CodeMirror/Node packages as external —
-    // they are provided by the Obsidian host at runtime and must not be bundled.
-    external: [
-      "obsidian",
-      "electron",
-      "@codemirror/autocomplete",
-      "@codemirror/closebrackets",
-      "@codemirror/commands",
-      "@codemirror/fold",
-      "@codemirror/gutter",
-      "@codemirror/history",
-      "@codemirror/language",
-      "@codemirror/lint",
-      "@codemirror/matchbrackets",
-      "@codemirror/rangeset",
-      "@codemirror/rectangular-selection",
-      "@codemirror/search",
-      "@codemirror/state",
-      "@codemirror/stream-parser",
-      "@codemirror/text",
-      "@codemirror/view",
-      ...builtins,
-    ],
-    format: "cjs",
-    // CHANGED from original: target es2018 to match our tsconfig.json.
-    target: "es2018",
-    // Dev: watch + inline source maps for debugging. Prod: minify, no maps.
-    minify: prod,
-    sourcemap: prod ? false : "inline",
-    // esbuild watch API changed in 0.17+: use context().watch() instead of build({watch}).
-    // For simplicity we keep the old-style boolean and rely on esbuild-svelte's version support.
-    watch: !prod,
-    plugins: [
-      sveltePlugin({
-        // Inline component CSS into the JS bundle (no separate .css per component).
-        compilerOptions: { css: "injected" },
-        preprocess: sveltePreprocess(),
-      }),
-    ],
-    logLevel: "info",
-    treeShaking: true,
-    outdir,
-  })
-  .catch(() => process.exit(1));
+// CHANGED: JS-only build — Obsidian loads styles.css directly from the plugin dir.
+// In dev we copy styles.css manually; in prod it already lives at the repo root.
+const externalModules = [
+  "obsidian",
+  "electron",
+  "@codemirror/autocomplete",
+  "@codemirror/closebrackets",
+  "@codemirror/commands",
+  "@codemirror/fold",
+  "@codemirror/gutter",
+  "@codemirror/history",
+  "@codemirror/language",
+  "@codemirror/lint",
+  "@codemirror/matchbrackets",
+  "@codemirror/rangeset",
+  "@codemirror/rectangular-selection",
+  "@codemirror/search",
+  "@codemirror/state",
+  "@codemirror/stream-parser",
+  "@codemirror/text",
+  "@codemirror/view",
+  ...builtins,
+];
+
+const jsBuildOptions = {
+  banner: { js: banner },
+  entryPoints: ["src/main.ts"],
+  bundle: true,
+  external: externalModules,
+  format: "cjs",
+  // CHANGED from original: target es2018 to match our tsconfig.json.
+  target: "es2018",
+  minify: prod,
+  sourcemap: prod ? false : "inline",
+  plugins: [
+    sveltePlugin({
+      // Inline component CSS into the JS bundle (no separate .css per component).
+      compilerOptions: { css: "injected" },
+      preprocess: sveltePreprocess(),
+    }),
+  ],
+  logLevel: "info",
+  treeShaking: true,
+  // Output directly to the target dir as main.js (not src/main.js).
+  outfile: `${outdir}main.js`,
+};
+
+if (prod) {
+  // Production: build JS to repo root. styles.css is already at root — no copy needed.
+  esbuild.build(jsBuildOptions).catch(() => process.exit(1));
+} else {
+  // Dev: ensure the vault plugin directory exists, then copy styles.css into it.
+  mkdirSync(outdir, { recursive: true });
+  copyFileSync("styles.css", `${outdir}styles.css`);
+  console.info(`[esbuild] Copied styles.css → ${outdir}styles.css`);
+
+  // CHANGED: esbuild 0.17+ removed `watch` from build() options.
+  // Dev mode uses context().watch() per the new esbuild watch API.
+  esbuild
+    .context(jsBuildOptions)
+    .then((ctx) => ctx.watch())
+    .catch(() => process.exit(1));
+}

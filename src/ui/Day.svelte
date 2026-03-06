@@ -11,7 +11,9 @@
 <script lang="ts">
   import type { Moment } from "moment";
   import type { TFile } from "obsidian";
-  import { getDateUID, IGranularity } from "obsidian-daily-notes-interface";
+  // CHANGED: IGranularity is a type — must use import type when verbatimModuleSyntax is on.
+  import { getDateUID } from "obsidian-daily-notes-interface";
+  import type { IGranularity } from "obsidian-daily-notes-interface";
   import { createEventDispatcher, getContext } from "svelte";
   import type { Writable } from "svelte/store";
 
@@ -29,33 +31,39 @@
   /** Returns per-source display settings keyed by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
 
+  // CHANGED: All three handlers are optional (undefined by default) because they are
+  // spread from the parent's eventHandlers record and svelte-check cannot verify that
+  // the spread satisfies required props. The handlers are called with `?.` so the
+  // runtime is safe when they are absent.
+  // CHANGED: file parameters are TFile | null — cells without a note still fire events.
   /** Called on hover (for Obsidian link-preview and tooltip). */
-  export let onHover: (
+  export let onHover: ((
     periodicity: IGranularity,
     date: Moment,
-    file: TFile,
+    file: TFile | null,
     targetEl: EventTarget,
     isMetaPressed: boolean
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
   /** Called on click (opens or creates the daily note). */
-  export let onClick: (
+  export let onClick: ((
     granularity: IGranularity,
     date: Moment,
-    existingFile: TFile,
+    existingFile: TFile | null,
     inNewSplit: boolean
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
   /** Called on right-click (shows file menu). */
-  export let onContextMenu: (
+  export let onContextMenu: ((
     granularity: IGranularity,
     date: Moment,
-    file: TFile,
+    file: TFile | null,
     event: MouseEvent
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
 
   /** Today's date — used for the "today" CSS class. */
   export let today: Moment;
   /** The dateUID of the currently active (open) note. */
-  export let selectedId: string = null;
+  // CHANGED: string | null (was `string = null` — null is not assignable to string under strict).
+  export let selectedId: string | null = null;
 
   const isMobile = getContext<boolean>(IS_MOBILE);
   const displayedMonth = getContext<Writable<Moment>>(DISPLAYED_MONTH);
@@ -70,7 +78,9 @@
     metadata = fileCache.getEvaluatedMetadata("day", date, getSourceSettings);
   });
 
-  function handleClick(event: MouseEvent, meta: IDayMetadata[]) {
+  // CHANGED: meta params typed as IDayMetadata[] | null — MetadataResolver slots null
+  // while the promise is pending, so all handlers must tolerate a null metadata array.
+  function handleClick(event: MouseEvent, meta: IDayMetadata[] | null) {
     onClick?.("day", date, file, isMetaPressed(event));
     // On mobile there is no hover event, so clicking also fires the tooltip.
     if (isMobile) {
@@ -78,8 +88,10 @@
     }
   }
 
-  function handleHover(event: PointerEvent, meta: IDayMetadata[]) {
-    onHover?.("day", date, file, event.target, isMetaPressed(event));
+  function handleHover(event: PointerEvent, meta: IDayMetadata[] | null) {
+    // CHANGED: event.target is EventTarget | null — non-null assertion is safe here
+    // because pointerenter only fires on actual elements.
+    onHover?.("day", date, file, event.target!, isMetaPressed(event));
     // Bubble to Calendar.svelte so the tooltip timer can start.
     dispatch("hoverDay", { date, metadata: meta, target: event.target });
   }
@@ -97,7 +109,7 @@
    * Collect extra HTML attributes from metadata sources that set `attrs`.
    * Only sources with display:"calendar-and-menu" contribute attributes.
    */
-  function getAttributes(meta: IDayMetadata[]): IHTMLAttributes {
+  function getAttributes(meta: IDayMetadata[] | null): IHTMLAttributes {
     if (!meta) return {};
     return meta
       .filter((m) => m.display === "calendar-and-menu")
@@ -124,7 +136,7 @@
       on:dragstart={(event) => fileCache.onDragStart(event, file)}
     >
       {date.format("D")}
-      <Dots {metadata} />
+      <Dots {metadata} isActive={selectedId === getDateUID(date, "day")} />
     </div>
   </MetadataResolver>
 </td>

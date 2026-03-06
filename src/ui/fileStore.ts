@@ -171,7 +171,10 @@ export default class PeriodicNotesCache {
     return metadata;
   }
 
-  public onDragStart(event: DragEvent, file: TFile): void {
+  // CHANGED: file is TFile | null because cells without a note still fire drag events.
+  // When file is null we bail out early — there is nothing to drag.
+  public onDragStart(event: DragEvent, file: TFile | null): void {
+    if (!file) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dragManager = (this.app as any).dragManager;
     const dragData = dragManager.dragFile(event, file);

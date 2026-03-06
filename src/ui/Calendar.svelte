@@ -52,7 +52,8 @@
   /** Returns per-source display settings (color, display, order) by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
   /** The dateUID of the currently active (open) note. */
-  export let selectedId: string = null;
+  // CHANGED: string | null (was `string = null` — null is not assignable to string under strict).
+  export let selectedId: string | null = null;
 
   /** Today's date — overridable for testing; driven by the heartbeat in production. */
   export let today: Moment = window.moment();

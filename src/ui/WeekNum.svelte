@@ -10,7 +10,9 @@
 <script lang="ts">
   import type { Moment } from "moment";
   import type { TFile } from "obsidian";
-  import { getDateUID, IGranularity } from "obsidian-daily-notes-interface";
+  // CHANGED: IGranularity is a type — must use import type when verbatimModuleSyntax is on.
+  import { getDateUID } from "obsidian-daily-notes-interface";
+  import type { IGranularity } from "obsidian-daily-notes-interface";
   import { createEventDispatcher } from "svelte";
 
   import Dots from "./Dots.svelte";
@@ -26,32 +28,37 @@
   /** Returns per-source display settings keyed by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
 
-  /** Called when the user clicks the week cell. */
-  export let onHover: (
+  // CHANGED: All three handlers are optional — they are spread from the parent's
+  // eventHandlers record and svelte-check cannot verify that the spread satisfies
+  // required props. Called with `?.` so runtime is safe when absent.
+  // CHANGED: file parameters are TFile | null — week cells without a note still fire events.
+  /** Called when the user hovers the week cell. */
+  export let onHover: ((
     periodicity: IGranularity,
     date: Moment,
-    file: TFile,
+    file: TFile | null,
     targetEl: EventTarget,
     isMetaPressed: boolean
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
   /** Called when the user clicks the week cell. */
-  export let onClick: (
+  export let onClick: ((
     granularity: IGranularity,
     date: Moment,
-    existingFile: TFile,
+    existingFile: TFile | null,
     inNewSplit: boolean
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
   /** Called on right-click. */
-  export let onContextMenu: (
+  export let onContextMenu: ((
     granularity: IGranularity,
     date: Moment,
-    file: TFile,
+    file: TFile | null,
     event: MouseEvent
-  ) => boolean;
+  ) => boolean) | undefined = undefined;
   /** The shared periodic-notes file cache. */
   export let fileCache: PeriodicNotesCache;
   /** The dateUID of the currently active (open) note. */
-  export let selectedId: string = null;
+  // CHANGED: string | null (was `string = null` — null is not assignable to string under strict).
+  export let selectedId: string | null = null;
 
   let file: TFile | null;
   let startOfWeek: Moment;
@@ -68,8 +75,11 @@
 
   const dispatch = createEventDispatcher();
 
-  function handleHover(event: PointerEvent, meta: IDayMetadata[]) {
-    onHover?.("week", days[0], file, event.target, isMetaPressed(event));
+  // CHANGED: meta typed as IDayMetadata[] | null — MetadataResolver slots null while pending.
+  function handleHover(event: PointerEvent, meta: IDayMetadata[] | null) {
+    // CHANGED: event.target is EventTarget | null — non-null assertion is safe here
+    // because pointerenter only fires on actual elements.
+    onHover?.("week", days[0], file, event.target!, isMetaPressed(event));
     // Bubble to Calendar.svelte so the tooltip pipeline can fire.
     dispatch("hoverDay", {
       date: days[0],
@@ -100,7 +110,7 @@
       on:pointerleave={endHover}
     >
       {weekNum}
-      <Dots {metadata} />
+      <Dots {metadata} isActive={selectedId === getDateUID(days[0], "week")} />
     </div>
   </MetadataResolver>
 </td>
