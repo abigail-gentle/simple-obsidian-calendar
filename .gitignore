@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+OLD_DEPS_AND_BLOAT/
 
 # Build output
 main.js
