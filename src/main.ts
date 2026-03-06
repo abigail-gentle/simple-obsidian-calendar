@@ -23,6 +23,7 @@ import type { ILocaleOverride, IWeekStartOption } from "src/localization";
 import { defaultSettings } from "src/settings";
 import type { ISettings } from "src/settings";
 import { templaterIsAvailable } from "src/io/template";
+import { hasWeekTokenMismatch } from "src/io/weekFormat";
 import { settings } from "src/ui/stores";
 import { dailyNotes, weeklyNotes } from "src/ui/stores";
 import CalendarView from "src/view";
@@ -318,7 +319,7 @@ class CalendarSettingsTab extends PluginSettingTab {
 
   /** Date format string for the weekly note filename. */
   private addWeeklyNoteFormatSetting(): void {
-    new Setting(this.containerEl)
+    const setting = new Setting(this.containerEl)
       .setName("Weekly note format")
       .setDesc(
         "For more syntax help, refer to the moment.js format reference."
@@ -328,8 +329,29 @@ class CalendarSettingsTab extends PluginSettingTab {
         text.setPlaceholder(DEFAULT_WEEK_FORMAT);
         text.onChange((value) => {
           this.plugin.writeOptions(() => ({ weeklyNoteFormat: value }));
+          updateFormatWarning(value);
         });
       });
+
+    // Inline warning element shown when the format has mismatched week tokens.
+    // Appended beneath the setting control row, hidden by default.
+    const warningEl = setting.settingEl.createDiv("weekly-format-warning");
+    warningEl.hide();
+
+    const updateFormatWarning = (format: string) => {
+      if (hasWeekTokenMismatch(format)) {
+        warningEl.setText(
+          "⚠ Mismatched locale and ISO week tokens — notes may appear on the wrong week. " +
+          "Use gggg+ww or GGGG+WW, not gggg+WW or GGGG+ww."
+        );
+        warningEl.show();
+      } else {
+        warningEl.hide();
+      }
+    };
+
+    // Run immediately so the warning appears on settings-tab open if already bad.
+    updateFormatWarning(this.plugin.options.weeklyNoteFormat);
   }
 
   /** Path to the template file used for new weekly notes. */

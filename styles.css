@@ -13,3 +13,16 @@
 .settings-banner h4 {
   margin: 0;
 }
+
+/* Warning shown beneath the weekly note format input when moment.js week
+   tokens are mismatched (e.g. gggg paired with WW). Orange is used as there
+   is no guaranteed Obsidian CSS variable for "warning" colour. */
+.weekly-format-warning {
+  color: #e07000;
+  font-size: 0.85em;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-left: 3px solid #e07000;
+  background-color: rgba(224, 112, 0, 0.08);
+  border-radius: 0 3px 3px 0;
+}
