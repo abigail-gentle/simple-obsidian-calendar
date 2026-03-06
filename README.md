@@ -103,17 +103,6 @@ In Obsidian: **Settings → Community plugins → Reload plugins**, then enable
 [Hot Reload](https://github.com/pjeby/hot-reload) plugin (or **Reload app without
 saving** from the command palette) to pick up rebuilds without restarting Obsidian.
 
-### Alternative: repo lives outside the vault (`.env` setup)
-
-If your repo is checked out somewhere else, create a `.env` file at the repo root:
-
-```
-TEST_VAULT=/path/to/your/obsidian/vault/
-```
-
-Then `npm run dev` writes `main.js` into
-`$TEST_VAULT/.obsidian/plugins/simple-obsidian-calendar/` automatically.
-
 ### One-shot manual install
 
 1. `npm run build` — produces `main.js` at the repo root.
