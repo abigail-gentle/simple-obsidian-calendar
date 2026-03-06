@@ -86,12 +86,21 @@ simple-obsidian-calendar/
 npm install
 ```
 
+### Manual install (simplest)
+
+1. Run `npm run build` to produce `main.js` at the repo root.
+2. Copy `main.js`, `styles.css`, and `manifest.json` into your vault:
+   ```
+   VaultFolder/.obsidian/plugins/simple-obsidian-calendar/
+   ```
+3. In Obsidian: **Settings → Community plugins → Reload plugins**, then enable *Simple Obsidian Calendar*.
+
 ### Development build (watch mode)
 
 Create a `.env` file at the repo root pointing to a local Obsidian vault:
 
 ```
-TEST_VAULT=/path/to/your/obsidian/vault
+TEST_VAULT=/path/to/your/obsidian/vault/
 ```
 
 Then run:
@@ -100,8 +109,11 @@ Then run:
 npm run dev
 ```
 
-Built files are written directly to `$TEST_VAULT/.obsidian/plugins/calendar/`. Enable
-the plugin in Obsidian's community plugin settings.
+The build writes `main.js` directly into `$TEST_VAULT/.obsidian/plugins/calendar/` and
+watches for source changes. On first run it also copies `styles.css` into the same folder.
+Enable the plugin in Obsidian's community plugin settings, then use **Reload app without
+saving** (or the [Hot Reload](https://github.com/pjeby/hot-reload) plugin) to pick up
+subsequent rebuilds without restarting Obsidian.
 
 ### Production build
 
@@ -109,7 +121,7 @@ the plugin in Obsidian's community plugin settings.
 npm run build
 ```
 
-Produces a minified `main.js` and copies `styles.css` to the output directory.
+Produces a minified `main.js` at the repo root alongside the existing `styles.css`.
 
 ### Typecheck and lint
 
