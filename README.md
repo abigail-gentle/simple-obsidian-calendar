@@ -1,6 +1,6 @@
 # simple-obsidian-calendar
 
-A community fork of [liamcain/obsidian-calendar-plugin](https://github.com/liamcain/obsidian-calendar-plugin), consolidated into a single repository and updated for modern Obsidian.
+A community fork of [liamcain/obsidian-calendar-plugin](https://github.com/liamcain/obsidian-calendar-plugin), consolidated into a single repository and updated for modern Obsidian. Almost nothing has changed, except to remove the dependence on periodic notes. Most of these changes were completed by Claude Sonnet 4.6 using OpenCode. This repository is not intended to be very extensible, and was all an effort to fix a tiny issue I had with the out of date plugin.
 
 ---
 
