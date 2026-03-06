@@ -20,7 +20,8 @@ import type { ITemplateEngine } from "src/settings";
  */
 export function templaterIsAvailable(): boolean {
   try {
-    return !!window.app?.plugins?.plugins?.["templater-obsidian"];
+    // `plugins` is not on the public App type — access via `any`.
+    return !!(window.app as any)?.plugins?.plugins?.["templater-obsidian"];
   } catch {
     return false;
   }
@@ -61,6 +62,7 @@ export async function applyTemplate(
   }
 
   // Call the Templater API to overwrite the target file with the rendered template.
-  const templater = window.app.plugins.plugins["templater-obsidian"] as any;
+  // `plugins` is not on the public App type — access via `any`.
+  const templater = (window.app as any).plugins.plugins["templater-obsidian"] as any;
   await templater.templater.write_template_to_file(templateFile, targetFile);
 }

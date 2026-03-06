@@ -7,16 +7,10 @@
  * matching Obsidian's modern API.
  */
 
-import type { WeekSpec } from "moment";
+// Window augmentations (app, moment, _bundledLocaleWeekSpec) live in global.d.ts.
+// Do not re-declare them here — duplicate declarations cause type conflicts.
 
-declare global {
-  interface Window {
-    _bundledLocaleWeekSpec: WeekSpec;
-    // Obsidian injects the App instance onto window at runtime.
-    app: any;
-    moment: typeof import("moment");
-  }
-}
+import type { WeekSpec } from "moment";
 
 export type ILocaleOverride = "system-default" | string;
 export type IWeekStartOption =
