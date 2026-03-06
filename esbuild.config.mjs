@@ -36,20 +36,25 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = process.argv[2] === "production";
 
-// In dev mode, write directly into the Obsidian vault defined by TEST_VAULT in .env.
-// In production, write to the repo root (Obsidian loads main.js and styles.css from there).
+// Determine where to write the built plugin files.
+//
+// Production: always the repo root (Obsidian reads main.js / styles.css from there).
+//
+// Dev: two supported setups:
+//   1. Repo cloned directly into .obsidian/plugins/<id>/ — outdir stays "./" and
+//      no .env file is needed. This is the simplest setup.
+//   2. Repo lives elsewhere — set TEST_VAULT in a .env file and the build writes
+//      into $TEST_VAULT/.obsidian/plugins/<manifest.id>/ automatically.
 let outdir = "./";
 if (!prod) {
   const vaultDir = process.env.TEST_VAULT;
-  if (!vaultDir) {
-    console.error(
-      "\n[esbuild] ERROR: TEST_VAULT is not set. Create a .env file with:\n  TEST_VAULT=/path/to/your/vault/\n"
-    );
-    process.exit(1);
+  if (vaultDir) {
+    // Ensure trailing slash before appending plugin path.
+    const base = vaultDir.endsWith("/") ? vaultDir : `${vaultDir}/`;
+    outdir = `${base}.obsidian/plugins/${manifest.id}/`;
   }
-  // Ensure trailing slash before appending plugin path.
-  const base = vaultDir.endsWith("/") ? vaultDir : `${vaultDir}/`;
-  outdir = `${base}.obsidian/plugins/${manifest.id}/`;
+  // If TEST_VAULT is not set we assume the repo is already inside the vault's
+  // plugins folder, so outdir = "./" is correct and no action is needed.
 }
 
 console.info(`\n[esbuild] Writing plugin to: ${outdir}\n`);
@@ -105,10 +110,14 @@ if (prod) {
   // Production: build JS to repo root. styles.css is already at root — no copy needed.
   esbuild.build(jsBuildOptions).catch(() => process.exit(1));
 } else {
-  // Dev: ensure the vault plugin directory exists, then copy styles.css into it.
-  mkdirSync(outdir, { recursive: true });
-  copyFileSync("styles.css", `${outdir}styles.css`);
-  console.info(`[esbuild] Copied styles.css → ${outdir}styles.css`);
+  // Dev: if writing to an external vault dir, ensure the directory exists and
+  // copy styles.css into it. Skip both when outdir is "./" (repo-in-plugins setup)
+  // since styles.css is already in place.
+  if (outdir !== "./") {
+    mkdirSync(outdir, { recursive: true });
+    copyFileSync("styles.css", `${outdir}styles.css`);
+    console.info(`[esbuild] Copied styles.css → ${outdir}styles.css`);
+  }
 
   // CHANGED: esbuild 0.17+ removed `watch` from build() options.
   // Dev mode uses context().watch() per the new esbuild watch API.

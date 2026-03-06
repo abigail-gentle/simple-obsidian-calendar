@@ -86,34 +86,42 @@ simple-obsidian-calendar/
 npm install
 ```
 
-### Manual install (simplest)
+### Recommended: clone directly into the plugins folder
 
-1. Run `npm run build` to produce `main.js` at the repo root.
-2. Copy `main.js`, `styles.css`, and `manifest.json` into your vault:
-   ```
-   VaultFolder/.obsidian/plugins/simple-obsidian-calendar/
-   ```
-3. In Obsidian: **Settings → Community plugins → Reload plugins**, then enable *Simple Obsidian Calendar*.
+This is the simplest setup and requires no configuration file.
 
-### Development build (watch mode)
+```bash
+cd /path/to/your/vault/.obsidian/plugins/
+git clone <repo-url> simple-obsidian-calendar
+cd simple-obsidian-calendar
+npm install
+npm run dev   # watches for changes and rebuilds in place
+```
 
-Create a `.env` file at the repo root pointing to a local Obsidian vault:
+In Obsidian: **Settings → Community plugins → Reload plugins**, then enable
+*Simple Obsidian Calendar*. Use the
+[Hot Reload](https://github.com/pjeby/hot-reload) plugin (or **Reload app without
+saving** from the command palette) to pick up rebuilds without restarting Obsidian.
+
+### Alternative: repo lives outside the vault (`.env` setup)
+
+If your repo is checked out somewhere else, create a `.env` file at the repo root:
 
 ```
 TEST_VAULT=/path/to/your/obsidian/vault/
 ```
 
-Then run:
+Then `npm run dev` writes `main.js` into
+`$TEST_VAULT/.obsidian/plugins/simple-obsidian-calendar/` automatically.
 
-```bash
-npm run dev
-```
+### One-shot manual install
 
-The build writes `main.js` directly into `$TEST_VAULT/.obsidian/plugins/calendar/` and
-watches for source changes. On first run it also copies `styles.css` into the same folder.
-Enable the plugin in Obsidian's community plugin settings, then use **Reload app without
-saving** (or the [Hot Reload](https://github.com/pjeby/hot-reload) plugin) to pick up
-subsequent rebuilds without restarting Obsidian.
+1. `npm run build` — produces `main.js` at the repo root.
+2. Copy `main.js`, `styles.css`, and `manifest.json` into:
+   ```
+   VaultFolder/.obsidian/plugins/simple-obsidian-calendar/
+   ```
+3. Obsidian → **Settings → Community plugins → Reload plugins** → enable the plugin.
 
 ### Production build
 
