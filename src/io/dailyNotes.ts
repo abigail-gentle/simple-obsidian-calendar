@@ -3,7 +3,7 @@ import type { TFile } from "obsidian";
 import {
   createDailyNote,
   getDailyNoteSettings,
-} from "obsidian-daily-notes-interface";
+} from "src/periodicNotes";
 
 import type { ISettings } from "../settings";
 import { applyTemplate } from "./template";

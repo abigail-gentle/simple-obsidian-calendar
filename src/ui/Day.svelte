@@ -1,7 +1,7 @@
 <!-- Individual day cell in the calendar grid.
      Handles click (open/create note), Cmd/Ctrl+click (open in split), hover
      (tooltip pipeline + Obsidian link-hover preview), right-click (file menu),
-     and native drag-and-drop via the PeriodicNotesCache drag manager.
+     and native drag-and-drop via the NoteCache drag manager.
 
      Ported from obsidian-calendar-ui/src/components/Day.svelte with one change:
        CHANGED: all import paths updated from the old library layout to local src/ui/. -->
@@ -12,22 +12,22 @@
   import type { Moment } from "moment";
   import type { TFile } from "obsidian";
   // CHANGED: IGranularity is a type — must use import type when verbatimModuleSyntax is on.
-  import { getDateUID } from "obsidian-daily-notes-interface";
-  import type { IGranularity } from "obsidian-daily-notes-interface";
+  import { getDateUID } from "src/periodicNotes";
+  import type { IGranularity } from "src/periodicNotes";
   import { createEventDispatcher, getContext } from "svelte";
   import type { Writable } from "svelte/store";
 
   import Dots from "./Dots.svelte";
   import MetadataResolver from "./MetadataResolver.svelte";
   import { DISPLAYED_MONTH, IS_MOBILE } from "./context";
-  import type PeriodicNotesCache from "../ui/fileStore";
+  import type NoteCache from "../ui/fileStore";
   import type { IDayMetadata, IHTMLAttributes, ISourceSettings } from "../types";
   import { isMetaPressed } from "./utils";
 
   /** The moment date this cell represents. */
   export let date: Moment;
-  /** The shared periodic-notes file cache. */
-  export let fileCache: PeriodicNotesCache;
+  /** The shared note file cache. */
+  export let fileCache: NoteCache;
   /** Returns per-source display settings keyed by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
 

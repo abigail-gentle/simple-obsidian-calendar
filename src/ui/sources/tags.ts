@@ -1,5 +1,5 @@
 import { parseFrontMatterTags, TFile } from "obsidian";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+import type { IGranularity } from "src/periodicNotes";
 
 import type { ICalendarSource, IEvaluatedMetadata } from "../../types";
 import { partition } from "../utils";

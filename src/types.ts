@@ -6,7 +6,7 @@
 
 import type { Moment } from "moment";
 import type { TFile } from "obsidian";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+import type { IGranularity } from "src/periodicNotes";
 
 export interface IDot {
   isFilled: boolean;

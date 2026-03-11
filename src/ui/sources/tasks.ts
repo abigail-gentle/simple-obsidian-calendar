@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+import type { IGranularity } from "src/periodicNotes";
 
 import type { ICalendarSource, IDot, IEvaluatedMetadata } from "../../types";
 

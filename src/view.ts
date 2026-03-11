@@ -23,8 +23,8 @@ import {
   getDateFromFile,
   getWeeklyNote,
   getWeeklyNoteSettings,
-} from "obsidian-daily-notes-interface";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+} from "src/periodicNotes";
+import type { IGranularity } from "src/periodicNotes";
 import { FileView, ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import { get } from "svelte/store";
 
@@ -63,15 +63,6 @@ export default class CalendarView extends ItemView {
     this.onFileDeleted = this.onFileDeleted.bind(this);
     this.onFileModified = this.onFileModified.bind(this);
     this.onFileOpen = this.onFileOpen.bind(this);
-
-    // Listen for periodic-notes plugin settings changes — reindex stores so
-    // weekly note format/folder/template changes are reflected immediately.
-    this.registerEvent(
-      (this.app.workspace as any).on(
-        "periodic-notes:settings-updated",
-        this.onNoteSettingsUpdate
-      )
-    );
 
     // Keep the daily/weekly note stores current with vault changes.
     // CHANGED: cast through `any` — the obsidian-api typings only declare "rename"
@@ -127,9 +118,9 @@ export default class CalendarView extends ItemView {
     this.calendar = new Calendar({
       target: (this as any).contentEl,
       props: {
-        // Calendar.svelte expects a Plugin instance for PeriodicNotesCache.
+        // Calendar.svelte expects a Plugin instance for NoteCache.
         // ItemView does not extend Plugin, but this.app is the Obsidian App.
-        // We pass `this` (the ItemView) — PeriodicNotesCache only uses
+        // We pass `this` (the ItemView) — NoteCache only uses
         // plugin.app and plugin.registerEvent(), both of which ItemView has.
         plugin: this as any,
         showWeekNums: get(settings).showWeeklyNote,

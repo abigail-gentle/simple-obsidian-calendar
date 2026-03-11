@@ -24,3 +24,6 @@ coverage/
 .idea/
 *.swp
 *.swo
+
+# Test vault
+ExampleVault/

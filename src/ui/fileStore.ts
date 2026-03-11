@@ -2,13 +2,12 @@ import type { Moment } from "moment";
 import type { Plugin, TAbstractFile, TFile } from "obsidian";
 import {
   getAllDailyNotes,
-  getAllMonthlyNotes,
   getAllWeeklyNotes,
   getDateFromFile,
   getDateFromPath,
   getDateUID,
-} from "obsidian-daily-notes-interface";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+} from "src/periodicNotes";
+import type { IGranularity } from "src/periodicNotes";
 import { get, writable } from "svelte/store";
 import type { Writable } from "svelte/store";
 
@@ -46,7 +45,7 @@ export function getDateUIDFromPath(path: string | null): string | null {
   return null;
 }
 
-export default class PeriodicNotesCache {
+export default class NoteCache {
   private app: Plugin["app"];
   public store: Writable<Record<PeriodicNoteID, TFile>>;
   private sources: ICalendarSource[];
@@ -67,9 +66,6 @@ export default class PeriodicNotesCache {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const workspace = this.app.workspace as any;
-    plugin.registerEvent(
-      workspace.on("periodic-notes:settings-updated", this.initialize, this)
-    );
     plugin.registerEvent(
       workspace.on("calendar:metadata-updated", this.initialize, this)
     );
@@ -125,7 +121,6 @@ export default class PeriodicNotesCache {
     this.store.set({
       ...getAllDailyNotes(),
       ...getAllWeeklyNotes(),
-      ...getAllMonthlyNotes(),
     });
   }
 

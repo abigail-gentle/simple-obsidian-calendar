@@ -21,11 +21,11 @@
   import { DISPLAYED_MONTH } from "./context";
   import Dots from "./Dots.svelte";
   import MetadataResolver from "./MetadataResolver.svelte";
-  import type PeriodicNotesCache from "../ui/fileStore";
+  import type NoteCache from "../ui/fileStore";
   import type { IDayMetadata, ISourceSettings } from "../types";
 
-  /** The shared periodic-notes file cache (used for monthly note dots). */
-  export let fileCache: PeriodicNotesCache;
+  /** The shared note file cache. */
+  export let fileCache: NoteCache;
   /** Returns per-source display settings keyed by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
   /**

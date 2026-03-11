@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian";
-import type { IGranularity } from "obsidian-daily-notes-interface";
+import type { IGranularity } from "src/periodicNotes";
 import { get } from "svelte/store";
 
 import { DEFAULT_WORDS_PER_DOT } from "../../constants";

@@ -27,7 +27,7 @@
   import Day from "./Day.svelte";
   import WeekNum from "./WeekNum.svelte";
   import Tooltip from "./Tooltip.svelte";
-  import PeriodicNotesCache from "./fileStore";
+  import NoteCache from "./fileStore";
   import { getDaysOfWeek, getMonth, isWeekend } from "./utils";
 
   // ── Props ──────────────────────────────────────────────────────────────────
@@ -44,7 +44,7 @@
    */
   export let eventHandlers: Record<string, CallableFunction> = {};
 
-  /** The Obsidian plugin instance — required by PeriodicNotesCache to register
+  /** The Obsidian plugin instance — required by NoteCache to register
    *  vault events through the plugin's own event lifecycle. */
   export let plugin: Plugin;
   /** External metadata sources injected at plugin open time via calendar:open. */
@@ -80,9 +80,9 @@
 
   // ── File cache ─────────────────────────────────────────────────────────────
 
-  // PeriodicNotesCache registers vault event listeners through `plugin` so they
+  // NoteCache registers vault event listeners through `plugin` so they
   // are automatically cleaned up when the plugin unloads.
-  const fileCache = new PeriodicNotesCache(plugin, sources);
+  const fileCache = new NoteCache(plugin, sources);
 
   // ── Tooltip state ──────────────────────────────────────────────────────────
   // CHANGED: replaces the Popper.js / svelte-portal / PopoverMenu stack from the

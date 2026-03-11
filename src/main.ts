@@ -15,7 +15,7 @@
 
 import type { Moment, WeekSpec } from "moment";
 import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from "obsidian";
-import { appHasDailyNotesPluginLoaded } from "obsidian-daily-notes-interface";
+import { appHasDailyNotesPluginLoaded } from "src/periodicNotes";
 
 import { VIEW_TYPE_CALENDAR, DEFAULT_WEEK_FORMAT, DEFAULT_WORDS_PER_DOT } from "src/constants";
 import { configureGlobalMomentLocale } from "src/localization";

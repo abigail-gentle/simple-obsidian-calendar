@@ -14,14 +14,14 @@
   import Arrow from "./Arrow.svelte";
   import Dot from "./Dot.svelte";
   import Month from "./Month.svelte";
-  import type PeriodicNotesCache from "../ui/fileStore";
+  import type NoteCache from "../ui/fileStore";
   import { DISPLAYED_MONTH } from "./context";
   import type { ISourceSettings } from "../types";
 
   /** Returns per-source display settings keyed by source id. */
   export let getSourceSettings: (sourceId: string) => ISourceSettings;
-  /** The shared periodic-notes file cache (forwarded to Month). */
-  export let fileCache: PeriodicNotesCache;
+  /** The shared note file cache (forwarded to Month). */
+  export let fileCache: NoteCache;
   /** Today's date — used to determine whether the reset dot should be active. */
   export let today: Moment;
   /** Event handlers forwarded from Calendar.svelte (onClick, onHover, onContextMenu). */

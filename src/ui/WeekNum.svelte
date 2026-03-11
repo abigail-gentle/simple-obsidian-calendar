@@ -11,17 +11,17 @@
   import type { Moment } from "moment";
   import type { TFile } from "obsidian";
   // CHANGED: IGranularity is a type — must use import type when verbatimModuleSyntax is on.
-  import { getDateUID } from "obsidian-daily-notes-interface";
-  import type { IGranularity } from "obsidian-daily-notes-interface";
+  import { getDateUID } from "src/periodicNotes";
+  import type { IGranularity } from "src/periodicNotes";
   import { createEventDispatcher } from "svelte";
 
   import Dots from "./Dots.svelte";
   import MetadataResolver from "./MetadataResolver.svelte";
-  import type PeriodicNotesCache from "../ui/fileStore";
+  import type NoteCache from "../ui/fileStore";
   import type { IDayMetadata, ISourceSettings } from "../types";
   import { getStartOfWeek, isMetaPressed } from "./utils";
 
-  /** The ISO week number displayed in this cell. */
+  /** The locale week number displayed in this cell. */
   export let weekNum: number;
   /** All seven days of this week (used to look up the note file). */
   export let days: Moment[];
@@ -54,8 +54,8 @@
     file: TFile | null,
     event: MouseEvent
   ) => boolean) | undefined = undefined;
-  /** The shared periodic-notes file cache. */
-  export let fileCache: PeriodicNotesCache;
+  /** The shared note file cache. */
+  export let fileCache: NoteCache;
   /** The dateUID of the currently active (open) note. */
   // CHANGED: string | null (was `string = null` — null is not assignable to string under strict).
   export let selectedId: string | null = null;

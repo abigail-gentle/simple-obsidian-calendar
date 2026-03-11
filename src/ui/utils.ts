@@ -7,7 +7,7 @@
 
 import type { Moment } from "moment";
 import type { TFile } from "obsidian";
-import { getDateFromFile, getDateUID } from "obsidian-daily-notes-interface";
+import { getDateFromFile, getDateUID } from "src/periodicNotes";
 
 import type { IMonth, IWeek } from "src/types";
 
