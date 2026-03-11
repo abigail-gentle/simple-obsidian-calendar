@@ -2,7 +2,7 @@
   "id": "calendar",
   "name": "Simple Calendar",
   "description": "Calendar view of your daily and weekly notes (community fork of liamcain/obsidian-calendar-plugin)",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": "Abigail Gentle",
   "authorUrl": "https://github.com/abigail-gentle",
   "minAppVersion": "1.0.0",
